@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- usernamespace는 반드시 mapper 위치로 설정해야 된다. -->
+<mapper namespace="com.ict.camping.domain.users.mapper.UsersMapper">
+	<insert id="joinUser" parameterType="UsersVO">
+        INSERT INTO users(id, password, username, phone, zipcode, email, address, address_detail, warn, join_date ,type)
+                VALUES (#{id}, #{password}, #{username}, #{phone}, #{zipcode}, #{email}, #{address}, #{address_detail}, #{warn}, NOW(),#{type})
+	</insert>
+    
+	<insert id="joinBusinessuser" parameterType="UsersVO">
+        INSERT INTO business_users(user_idx, business_name, business_number, started_date, contentId)
+                VALUES (#{user_idx}, #{business_name}, #{business_number}, STR_TO_DATE(#{started_date}, '%Y%m%d'), #{contentId})
+	</insert>
+    <select id="getUserIdxById" parameterType="String" resultType="String">
+        SELECT user_idx FROM users WHERE id = #{id}
+    </select>
+
+    <select id="usersIdCheck" parameterType="String" resultType="String">
+        SELECT id FROM users WHERE id = #{id}
+    </select>
+    <select id="getUsersById" parameterType="String" resultType="UsersVO">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+    <insert id="insertUser" parameterType="UsersVO">
+        INSERT INTO users(
+            id,
+            <if test="password != null">
+            password,
+            </if>
+            username,
+            <if test="sns_email_naver != null">
+            sns_email_naver,
+            </if>
+            <if test="sns_email_kakao != null">
+            sns_email_kakao, 
+            </if>
+            <if test="sns_email_google != null">
+            sns_email_google, 
+            </if>
+            sns_provider,
+            join_date ,type)
+        VALUES (
+            #{id}, 
+            <if test="password != null">
+            #{password},
+            </if>
+            #{username},
+            <if test="sns_email_naver != null">
+            #{sns_email_naver},
+            </if>
+            <if test="sns_email_kakao != null">
+            #{sns_email_kakao},
+            </if>
+            <if test="sns_email_google != null">
+            #{sns_email_google},
+            </if>
+            #{sns_provider},
+            NOW(), #{type})
+	</insert>
+    <select id="findUserByProvider" parameterType="UsersVO" resultType="UsersVO">
+        SELECT * FROM users 
+        WHERE 
+        (
+            (sns_provider = 'kakao'and sns_email_kakao = #{sns_email_kakao})
+        OR  
+            (sns_provider = 'naver'and sns_email_naver = #{sns_email_naver})
+        OR  
+            (sns_provider = 'google'and sns_email_google = #{sns_email_google})
+        )
+    </select>
+    <select id="getUserById" parameterType="String" resultType="UserDetailsVO">
+        SELECT * users WHERE user_id = #{user_id}
+    </select>
+
+
+</mapper>

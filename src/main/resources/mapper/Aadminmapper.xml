@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ict.camping.admin.admin.mapper.AdminMapper">
+    
+    <!-- 모든 관리자 조회 -->
+    <select id="findAllAdmins" resultType="com.ict.camping.admin.admin.vo.AdminVO">
+        SELECT ad.*, u.username, u.id, u.email, u.phone
+        FROM admins ad
+        JOIN users u ON ad.user_idx = u.user_idx
+    </select>
+
+    <!-- 특정 관리자 상세 조회 -->
+    <select id="findAdminDetail" parameterType="String" resultType="com.ict.camping.admin.admin.vo.AdminVO">
+        SELECT ad.*, u.username, u.id, u.email, u.phone
+        FROM admins ad
+        JOIN users u ON ad.user_idx = u.user_idx
+        WHERE ad.admin_idx = #{admin_idx}
+    </select>
+
+    <!-- 관리자 삭제 -->
+    <delete id="deleteAdmin" parameterType="String">
+        DELETE FROM admins WHERE admin_idx = #{admin_idx}
+    </delete>
+
+    <!-- 관리자 추가 -->
+    <insert id="insertAdmin" parameterType="com.ict.camping.admin.admin.vo.AdminVO">
+        INSERT INTO admins (user_idx, admin_type, assigned_at)
+        VALUES (#{user_idx}, #{admin_type}, NOW())
+    </insert>
+
+    <!-- 관리자 중복 확인 -->
+    <select id="checkIdDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM admins WHERE user_idx = #{user_idx}
+    </select>
+
+</mapper>

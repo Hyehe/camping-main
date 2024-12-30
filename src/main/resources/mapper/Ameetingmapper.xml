@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ict.camping.admin.meetings.mapper.AMeetingMapper">
+
+    <!-- 모든 번개 모임 조회 -->
+    <select id="findAllMeetings" resultType="com.ict.camping.admin.meetings.vo.AMeetingVO">
+        SELECT * FROM lighthning_meetings
+    </select>
+
+    <!-- 특정 번개 모임 상세 조회 -->
+    <select id="findMeetingDetail" parameterType="String" resultType="com.ict.camping.admin.meetings.vo.AMeetingVO">
+        SELECT 
+            lm.*, 
+            u.username, 
+            u.id, 
+            u.email
+        FROM 
+            lighthning_meetings lm
+        JOIN 
+            users u 
+        ON 
+            lm.writer_idx = u.user_idx
+        WHERE 
+            lm.post_idx = #{post_idx}
+    </select>
+
+    <!-- 번개 모임 업데이트 -->
+    <update id="updateMeetings" parameterType="com.ict.camping.admin.meetings.vo.AMeetingVO">
+        UPDATE lighthning_meetings
+        SET 
+            title = #{title},
+            content = #{content},
+            meeting_location = #{meeting_location},
+            meeting_date = #{meeting_date},
+            personnel = #{personnel}
+        WHERE 
+            post_idx = #{post_idx}
+    </update>
+
+    <!-- 번개 모임 삭제 -->
+    <delete id="deleteMeeting" parameterType="String">
+        DELETE FROM lighthning_meetings WHERE post_idx = #{post_idx}
+    </delete>
+
+    <!-- 특정 번개 모임 댓글 조회 -->
+    <select id="findCommentsByPostIdx" parameterType="String" resultType="com.ict.camping.admin.meetings.vo.ALightningCommentVO">
+        SELECT * FROM lighthning_meeting_comments WHERE post_idx = #{post_idx}
+    </select>
+
+    <!-- 특정 댓글 삭제 -->
+    <delete id="deleteCommentById" parameterType="int">
+        DELETE FROM lighthning_meeting_comments WHERE comment_idx = #{comment_idx}
+    </delete>
+
+</mapper>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ict.camping.admin.members.mapper.AMemberMapper">
+
+    <!-- 모든 회원 조회 -->
+    <select id="findAllMembers" resultType="com.ict.camping.admin.members.vo.AMemberVO">
+        SELECT * FROM users
+    </select>
+
+    <!-- 특정 회원 상세 조회 -->
+    <select id="findMemberDetail" parameterType="String" resultType="com.ict.camping.admin.members.vo.AMemberVO">
+        SELECT * FROM users WHERE user_idx = #{user_idx}
+    </select>
+
+    <!-- ID 중복 확인 -->
+    <select id="checkIdDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM users WHERE id = #{id}
+    </select>
+
+    <!-- IDX 중복 확인 -->
+    <select id="checkIdxDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM users WHERE user_idx = #{user_idx}
+    </select>
+
+    <!-- 회원 정보 업데이트 -->
+    <update id="updateMembers" parameterType="com.ict.camping.admin.members.vo.AMemberVO">
+        UPDATE users
+        SET username = #{username},
+            email = #{email},
+            phone = #{phone},
+            address = #{address}
+        WHERE user_idx = #{user_idx}
+    </update>
+
+    <!-- 사업자 정보 업데이트 -->
+    <update id="updateBusiness" parameterType="com.ict.camping.admin.members.vo.AOperatorVO">
+        UPDATE business
+        SET business_name = #{business_name},
+            business_number = #{business_number},
+            started_date = #{started_date},
+            contentId = #{contentId}
+        WHERE business_idx = #{business_idx}
+    </update>
+
+    <!-- 모든 사업자 조회 -->
+    <select id="findAllOperators" resultType="com.ict.camping.admin.members.vo.AOperatorVO">
+        SELECT 
+            b.business_idx,
+            b.user_idx,
+            b.contentId,
+            b.business_name,
+            b.business_number,
+            b.started_date,
+            u.id AS id,
+            u.username AS username,
+            u.email AS email,
+            u.password AS password,
+            u.phone AS phone,
+            u.sns_email_kakao AS sns_email_kakao,
+            u.sns_email_google AS sns_email_google,
+            u.sns_provider AS sns_provider,
+            u.sns_email_naver AS sns_email_naver,
+            u.address AS address,
+            u.join_date AS join_date
+        FROM 
+            business b
+        LEFT JOIN 
+            users u
+        ON 
+            b.user_idx = u.user_idx
+    </select>
+
+    <!-- 특정 사업자 상세 조회 -->
+    <select id="findOperatorDetail" parameterType="String" resultType="com.ict.camping.admin.members.vo.AOperatorVO">
+        SELECT 
+            b.business_idx,
+            b.user_idx,
+            b.contentId,
+            b.business_name,
+            b.business_number,
+            b.started_date,
+            u.id AS id,
+            u.username AS username,
+            u.email AS email,
+            u.password AS password,
+            u.phone AS phone,
+            u.sns_email_kakao AS sns_email_kakao,
+            u.sns_email_google AS sns_email_google,
+            u.sns_provider AS sns_provider,
+            u.sns_email_naver AS sns_email_naver,
+            u.address AS address,
+            u.join_date AS join_date
+        FROM 
+            business b
+        LEFT JOIN 
+            users u
+        ON 
+            b.user_idx = u.user_idx
+        WHERE 
+            business_idx = #{business_idx}
+    </select>
+
+    <!-- 회원 추가 -->
+    <insert id="insertMembers" parameterType="com.ict.camping.admin.members.vo.AMemberVO">
+        INSERT INTO users (id, username, password, email, address, type, phone, join_date)
+        VALUES (#{id}, #{username}, #{password}, #{email}, #{address}, #{type}, #{phone}, NOW())
+    </insert>
+
+    <!-- 사업자 추가 -->
+    <insert id="insertOperators" parameterType="com.ict.camping.admin.members.vo.AOperatorVO">
+        INSERT INTO business (user_idx, business_name, business_number, contentId, started_date)
+        VALUES (#{user_idx}, #{business_name}, #{business_number}, #{contentId}, #{started_date})
+    </insert>
+
+    <!-- 사업자 중복 확인 -->
+    <select id="checkUserDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM business WHERE user_idx = #{user_idx}
+    </select>
+
+</mapper>

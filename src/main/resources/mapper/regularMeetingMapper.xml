@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ict.camping.domain.regularMeeting.mapper.RegularMeetingMapper">
+
+    <!-- 1) 정규 모임 생성 -->
+    <insert id="insertMeeting" 
+            parameterType="com.ict.camping.domain.regularMeeting.vo.RegularMeetingVO"
+            useGeneratedKeys="true"
+            keyProperty="meeting_idx">
+        INSERT INTO regular_meetings 
+          (name, description, profile_image, region, subregion, personnel, leader_idx, created_at)
+        VALUES 
+          (#{name}, #{description}, #{profile_image}, #{region}, #{subregion}, #{personnel}, #{leader_idx}, NOW())
+    </insert>
+
+    <!-- 2) 전체 모임 목록 가져오기 -->
+    <resultMap id="MeetingResultMap" type="com.ict.camping.domain.regularMeeting.vo.RegularMeetingVO">
+        <id property="meeting_idx" column="meeting_idx" />
+        <result property="name" column="name" />
+        <result property="description" column="description" />
+        <result property="profile_image" column="profile_image" />
+        <result property="region" column="region" />
+        <result property="subregion" column="subregion" />
+        <result property="personnel" column="personnel" />
+        <result property="created_at" column="created_at" />
+        <result property="favorites_idx" column="favorites_idx" />
+        <result property="leader_idx" column="leader_idx" />
+
+        <!-- 해시태그를 배열로 매핑 -->
+        <collection property="hashtags" ofType="com.ict.camping.domain.regularMeeting.vo.HashtagVO" select="selectMeetingHashtags" column="meeting_idx" />
+
+        <!-- 멤버 아바타를 배열로 매핑 -->
+        <collection property="membersAvatar" ofType="map" select="selectMeetingMembersProfile" column="meeting_idx" />
+    </resultMap>
+
+    <!-- 전체 모임 목록 가져오기 - resultMap 사용 -->
+    <select id="selectAllMeetings" resultMap="MeetingResultMap">
+        SELECT 
+            rm.meeting_idx,
+            rm.name,
+            rm.description,
+            rm.profile_image,
+            rm.region,
+            rm.subregion,
+            rm.personnel,
+            rm.leader_idx,
+            DATE_FORMAT(rm.created_at, '%Y-%m-%d') AS created_at,
+            /* 좋아요 여부 (존재하면 true, 없으면 false) */
+            CASE WHEN rmf.user_idx IS NOT NULL THEN TRUE ELSE FALSE END AS favorites_idx
+        FROM regular_meetings rm
+        LEFT JOIN meeting_hashtags mh 
+               ON rm.meeting_idx = mh.meeting_idx
+        LEFT JOIN hashtags h 
+               ON mh.hashtag_idx = h.hashtag_idx
+        LEFT JOIN regular_meetings_favorites rmf 
+               ON rm.meeting_idx = rmf.meeting_idx 
+              AND rmf.user_idx = #{userIdx}
+        GROUP BY rm.meeting_idx
+    </select>
+
+    <!-- 3) 특정 모임 조회 (단건) - resultMap 사용 -->
+    <select id="selectMeetingById" parameterType="map" resultMap="MeetingResultMap">
+        SELECT 
+            rm.meeting_idx,
+            rm.name,
+            rm.description,
+            rm.profile_image,
+            rm.region,
+            rm.subregion,
+            rm.personnel,
+            rm.leader_idx,
+            rm.created_at,
+            /* 좋아요 여부 (존재하면 true, 없으면 false) */
+            CASE WHEN rmf.user_idx IS NOT NULL THEN TRUE ELSE FALSE END AS favorites_idx
+        FROM regular_meetings rm
+        LEFT JOIN meeting_hashtags mh 
+               ON rm.meeting_idx = mh.meeting_idx
+        LEFT JOIN hashtags h 
+               ON mh.hashtag_idx = h.hashtag_idx
+        LEFT JOIN regular_meetings_favorites rmf 
+               ON rm.meeting_idx = rmf.meeting_idx 
+              AND rmf.user_idx = #{userIdx}
+        WHERE rm.meeting_idx = #{meetingId}
+        GROUP BY rm.meeting_idx
+    </select>
+
+    <!-- 4) 해시태그 존재 여부 조회 -->
+    <select id="findHashtagByName" parameterType="string" resultType="int">
+        SELECT hashtag_idx
+        FROM hashtags
+        WHERE name = #{hashtag}
+    </select>
+
+    <!-- 5) 해시태그 목록 전부 가져오기 -->
+    <select id="selectAllHashtags" resultType="com.ict.camping.domain.regularMeeting.vo.HashtagVO">
+        SELECT hashtag_idx, name 
+        FROM hashtags
+        ORDER BY hashtag_idx
+    </select>
+
+    <!-- 6) 모임-해시태그 연결 삽입 -->
+    <insert id="insertMeetingHashtags">
+        INSERT INTO meeting_hashtags (meeting_idx, hashtag_idx)
+        VALUES (#{meetingIdx}, #{hashtagIdx})
+    </insert>
+
+    <!-- 좋아요 상태 확인 -->
+    <select id="checkFavorite" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM regular_meetings_favorites
+        WHERE user_idx = #{userIdx} AND meeting_idx = #{meetingIdx}
+    </select>
+
+    <!-- 좋아요 추가 -->
+    <insert id="insertFavorite">
+        INSERT INTO regular_meetings_favorites (user_idx, meeting_idx)
+        VALUES (#{userIdx}, #{meetingIdx})
+    </insert>
+
+    <!-- 좋아요 삭제 -->
+    <delete id="deleteFavorite">
+        DELETE FROM regular_meetings_favorites
+        WHERE user_idx = #{userIdx} AND meeting_idx = #{meetingIdx}
+    </delete>
+
+    <!-- 모임 가입 멤버 3명 프사 -->
+    <select id="selectMeetingMembersProfile" resultType="map" parameterType="int">
+        SELECT u.user_idx, u.avatar_url
+        FROM regular_meeting_members m
+        JOIN users u ON m.user_idx = u.user_idx
+        WHERE m.meeting_idx = #{meetingIdx}
+        ORDER BY m.joined_at ASC
+        LIMIT 3
+    </select>
+
+    <!-- 특정 모임의 해시태그 조회 -->
+    <select id="selectMeetingHashtags" resultType="com.ict.camping.domain.regularMeeting.vo.HashtagVO" parameterType="int">
+        SELECT 
+            h.hashtag_idx,
+            h.name
+        FROM meeting_hashtags mh
+        JOIN hashtags h ON mh.hashtag_idx = h.hashtag_idx
+        WHERE mh.meeting_idx = #{meetingIdx}
+    </select>
+
+    <!-- 7) 정규 모임 업데이트 -->
+    <update id="updateMeeting" parameterType="com.ict.camping.domain.regularMeeting.vo.RegularMeetingVO">
+        UPDATE regular_meetings
+        SET 
+            name = #{name},
+            description = #{description},
+            profile_image = #{profile_image},
+            region = #{region},
+            subregion = #{subregion},
+            personnel = #{personnel},
+            leader_idx = #{leader_idx},
+            created_at = NOW()
+        WHERE meeting_idx = #{meeting_idx}
+    </update>
+
+    <!-- 8) 정규 모임 삭제 -->
+    <delete id="deleteMeeting" parameterType="int">
+        DELETE FROM regular_meetings
+        WHERE meeting_idx = #{meetingIdx}
+    </delete>
+
+</mapper>

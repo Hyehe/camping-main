@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 반드시 mapper 위치로 설정해야 된다. -->
+<mapper namespace="com.ict.camping.domain.map.mapper.CampingMapper">
+<!--  모든 캠핑장 조회  -->
+<select id="findAllCampingSites" resultType="com.ict.camping.domain.map.vo.MapVO"> SELECT * FROM campingsites </select>
+<!--  특정 캠핑장 조회  -->
+<select id="findCampingSiteByContentId" parameterType="String" resultType="com.ict.camping.domain.map.vo.MapVO"> SELECT * FROM campingsites WHERE contentId = #{contentId} </select>
+<!--  캠핑장 중복 확인  -->
+<select id="checkCampingDuplicate" parameterType="String" resultType="int"> SELECT COUNT(*) FROM campingsites WHERE contentId = #{contentId} </select>
+<!--  캠핑장 데이터 삽입  -->
+<insert id="insertCampingSite" parameterType="com.ict.camping.domain.map.vo.MapVO"> INSERT INTO campingsites ( facltNm, intro, lineIntro, allar, bizrno, featureNm, induty, lctCl, doNm, sigunguNm, zipcode, addr1, direction, tel, homepage, sitedStnc, siteMg1Width, siteMg2Width, siteMg3Width, siteMg1Virticl, siteMg2Virticl, siteMg3Virticl, siteBottomCl1, siteBottomCl2, siteBottomCl3, siteBottomCl4, siteBottomCl5, sbrsCl, posblFcltyCl, animalCmgCl, firstImageUrl, createdtime, gnrlSiteCo, autoSiteCo, glampSiteCo, caravSiteCo, brazierCl, sbrsEtc, glampInnerFclty, caravInnerFclty, price ) VALUES ( #{facltNm}, #{intro}, #{lineIntro}, #{allar}, #{bizrno}, #{featureNm}, #{induty}, #{lctCl}, #{doNm}, #{sigunguNm}, #{zipcode}, #{addr1}, #{direction}, #{tel}, #{homepage}, #{sitedStnc}, #{siteMg1Width}, #{siteMg2Width}, #{siteMg3Width}, #{siteMg1Virticl}, #{siteMg2Virticl}, #{siteMg3Virticl}, #{siteBottomCl1}, #{siteBottomCl2}, #{siteBottomCl3}, #{siteBottomCl4}, #{siteBottomCl5}, #{sbrsCl}, #{posblFcltyCl}, #{animalCmgCl}, #{firstImageUrl}, NOW(), #{gnrlSiteCo}, #{autoSiteCo}, #{glampSiteCo}, #{caravSiteCo}, #{brazierCl}, #{sbrsEtc}, #{glampInnerFclty}, #{caravInnerFclty}, #{price} ) </insert>
+<!--  캠핑장 데이터 업데이트  -->
+<update id="updateCampingSite" parameterType="com.ict.camping.domain.map.vo.MapVO"> UPDATE campingsites SET facltNm = #{facltNm}, intro = #{intro}, lineIntro = #{lineIntro}, allar = #{allar}, bizrno = #{bizrno}, featureNm = #{featureNm}, induty = #{induty}, lctCl = #{lctCl}, doNm = #{doNm}, sigunguNm = #{sigunguNm}, zipcode = #{zipcode}, addr1 = #{addr1}, direction = #{direction}, tel = #{tel}, homepage = #{homepage}, sitedStnc = #{sitedStnc}, siteMg1Width = #{siteMg1Width}, siteMg2Width = #{siteMg2Width}, siteMg3Width = #{siteMg3Width}, siteMg1Virticl = #{siteMg1Virticl}, siteMg2Virticl = #{siteMg2Virticl}, siteMg3Virticl = #{siteMg3Virticl}, siteBottomCl1 = #{siteBottomCl1}, siteBottomCl2 = #{siteBottomCl2}, siteBottomCl3 = #{siteBottomCl3}, siteBottomCl4 = #{siteBottomCl4}, siteBottomCl5 = #{siteBottomCl5}, sbrsCl = #{sbrsCl}, posblFcltyCl = #{posblFcltyCl}, animalCmgCl = #{animalCmgCl}, firstImageUrl = #{firstImageUrl}, mapX = #{mapX}, mapY = #{mapY}, gnrlSiteCo = #{gnrlSiteCo}, autoSiteCo = #{autoSiteCo}, glampSiteCo = #{glampSiteCo}, caravSiteCo = #{caravSiteCo}, brazierCl = #{brazierCl}, sbrsEtc = #{sbrsEtc}, glampInnerFclty = #{glampInnerFclty}, caravInnerFclty = #{caravInnerFclty}, price = #{price} WHERE contentId = #{contentId} </update>
+</mapper>
+
+
+
+
+
+
