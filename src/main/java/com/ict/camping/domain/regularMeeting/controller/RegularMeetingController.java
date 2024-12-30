@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-// import org.springframework.security.core.Authentication;
-// import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +22,7 @@ import com.ict.camping.domain.regularMeeting.vo.RegularMeetingVO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/regular-meetings")
 public class RegularMeetingController {
@@ -76,21 +74,20 @@ public class RegularMeetingController {
             meeting.setProfile_image(storedFileName);
             meeting.setLeader_idx(userIdx);
 
-            // Create meeting and get meetingIdx
-            int meetingIdx = regularMeetingService.createMeeting(meeting);
-
-            // 3) 해시태그 연결
-            // 해시태그를 분리
+            // 해시태그를 분리하고 List<HashtagVO>로 설정
+            List<HashtagVO> hashtagList = new ArrayList<>();
             for (String hashtag : hashtags.split(",")) {
                 String trimTag = hashtag.trim();
-                int hashtagIdx = regularMeetingService.findHashtagByName(trimTag);
-                if (hashtagIdx > 0) { // 존재할 때만 연결
-                    regularMeetingService.insertMeetingHashtags(meetingIdx, hashtagIdx);
-                }
-                // 해시태그가 존재하지 않을 경우, 해시태그 생성 후 연결 로직 추가 가능
+                HashtagVO tagVO = new HashtagVO();
+                tagVO.setName(trimTag);
+                hashtagList.add(tagVO);
             }
+            meeting.setHashtags(hashtagList);
 
-            return ResponseEntity.ok("Regular meeting created successfully!");
+            // Create meeting and handle hashtags in the service
+            int meetingIdx = regularMeetingService.createMeeting(meeting);
+
+            return ResponseEntity.ok("Regular meeting created successfully with ID: " + meetingIdx);
         } catch (java.io.IOException e) {
             log.error("File upload failed", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid file upload");
@@ -122,25 +119,22 @@ public class RegularMeetingController {
     }
 
     // 3) 특정 모임 상세조회
-    @GetMapping("/{meetingId}")
-    public ResponseEntity<?> getMeetingById(
-            @PathVariable("meetingId") int meetingId,
-            @RequestParam(value = "user_idx", required = false, defaultValue = "0") int userIdx) {
+    @GetMapping("/detail/{meetingId}")
+    public ResponseEntity<?> getMeetingById(@PathVariable int meetingId, @RequestParam int userIdx) {
         try {
             RegularMeetingVO meeting = regularMeetingService.getMeetingById(meetingId, userIdx);
-            if (meeting != null) {
-                return ResponseEntity.ok(meeting);
-            } else {
+            if (meeting == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Meeting not found");
             }
+            return ResponseEntity.ok(meeting);
         } catch (Exception e) {
-            log.error("Error fetching meeting by ID", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching meeting");
+            log.error("Failed to fetch meeting details", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching meeting details");
         }
     }
 
     // 특정 모임마다 가입 멤버
-    @GetMapping("/{meetingId}/members")
+    @GetMapping("/detail/{meetingId}/members")
     public ResponseEntity<?> getMeetingMembersProfile(@PathVariable int meetingId) {
         try {
             List<Map<String, Object>> members = regularMeetingService.getMeetingMembersProfile(meetingId);
@@ -151,25 +145,8 @@ public class RegularMeetingController {
         }
     }
 
-    
-
-    // 4) 좋아요
-    // @PostMapping("/{meetingId}/favorite")
-    // public ResponseEntity<?> toggleFavorite(
-    //         @PathVariable int meetingId,
-    //         @RequestParam("user_idx") int userIdx) {
-    //     try {
-    //         boolean isFavorite = regularMeetingService.toggleFavorite(userIdx, meetingId);
-    //         return ResponseEntity.ok(Map.of("success", true, "favorite", isFavorite));
-    //     } catch (Exception e) {
-    //         log.error("Error toggling favorite", e);
-    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "error", e.getMessage()));
-    //     }
-    // }
-
-    // 좋아요 토글 메서드
-    @PostMapping("/{meetingId}/favorite")
-     @PreAuthorize("isAuthenticated()") // 인증된 사용자만 접근 가능
+    // 좋아요 
+    @PostMapping("/detail/{meetingId}/favorite")
     public ResponseEntity<?> toggleFavorite(
             @PathVariable int meetingId,
             @RequestParam("user_idx") int userIdx) { 
@@ -182,8 +159,6 @@ public class RegularMeetingController {
                                  .body(Map.of("success", false, "error", e.getMessage()));
         }
     }
-
-    
 
     // 5) 해시태그 목록 조회
     @GetMapping("/hashtags")

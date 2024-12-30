@@ -23,7 +23,10 @@ public class RegularMeetingServiceImpl implements RegularMeetingService {
         // MyBatis가 useGeneratedKeys="true"로 설정되어 있으므로, meeting_idx가 설정됨
         if (meeting.getHashtags() != null) {
             for (HashtagVO hashtag : meeting.getHashtags()) {
-                regularMeetingMapper.insertMeetingHashtags(meeting.getMeeting_idx(), hashtag.getHashtag_idx());
+                int hashtagIdx = findHashtagByName(hashtag.getName());
+                if (hashtagIdx > 0) {
+                    regularMeetingMapper.insertMeetingHashtags(meeting.getMeeting_idx(), hashtagIdx);
+                } 
             }
         }
         return meeting.getMeeting_idx();

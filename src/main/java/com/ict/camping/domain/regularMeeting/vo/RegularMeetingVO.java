@@ -26,6 +26,5 @@ public class RegularMeetingVO {
 
     private String leader_username;
     private String leader_avatar_url;
-    private String leader_description;
 
 }

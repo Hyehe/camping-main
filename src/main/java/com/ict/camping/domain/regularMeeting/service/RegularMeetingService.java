@@ -43,4 +43,5 @@ public interface RegularMeetingService {
 
     // 모임 가입 멤버 프로필 가져오기
     List<Map<String, Object>> getMeetingMembersProfile(int meetingIdx);
+    
 }

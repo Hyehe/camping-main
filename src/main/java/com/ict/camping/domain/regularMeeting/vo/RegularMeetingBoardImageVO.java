@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostVO {
-  private int board_idx,meeting_idx,user_idx,image_idx;
-  private String board_content, uploaded_at;
+public class RegularMeetingBoardImageVO {
+  private int image_idx, image_url;
 }

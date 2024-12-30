@@ -1,7 +1,5 @@
 package com.ict.camping.domain.regularMeeting.vo;
 
-import com.twilio.twiml.Text;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PhotoVO {
-  private int image_idx, image_url;
+public class RegularMeetingBoardVO {
+  private int board_idx,meeting_idx,user_idx,image_idx;
+  private String board_content, uploaded_at;
 }

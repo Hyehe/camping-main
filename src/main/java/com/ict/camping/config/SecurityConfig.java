@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -55,17 +54,14 @@ public class SecurityConfig {
               .cors(cors -> cors.configurationSource(corsConfigurationSource()))
               .csrf(csrf -> csrf.disable())
               // 요청별 권한 설정
-              .authorizeHttpRequests((auth) -> auth
-                      .requestMatchers("/api/regular-meetings/hashtags").permitAll()
+              .authorizeHttpRequests(authorize -> authorize
                       .requestMatchers("/upload/**").permitAll()
                       .requestMatchers("/oauth2/**").permitAll()
-                      .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
-                      .requestMatchers("/api/regular-meetings").permitAll()
-                      .requestMatchers("/api/users/join", "/api/users/login", "/api/users/idCheck", 
-                              "/api/signup/sendVerificationEmail", "/api/signup/verifyEmail", "/api/sms/**", "api/users/profile")
-                      .permitAll()
-                      // 모든 OPTIONS 요청 허용
-                      .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                      // 특정 URL에 인증없이 허용
+                      .requestMatchers("/api/users/join", "/api/users/login", "/api/users/idCheck","/api/camping/**","/api/camping/sites/{contentId}","/api/{meetingId}/favorite",
+                              "/api/signup/sendVerificationEmail", "/api/signup/verifyEmail", "/api/sms/**", "api/users/profile" ,"/api/admin/**", "/api/member/**", "/api/users/**"
+                              ,  "/api/users/**", "/myPage/myUserInfo/passwordCheck", "/api/camping/payments", "/api/meetings", "/api/meetings/**", "/api/regular-meetings", "/api/regular-meetings/**")
+                      .permitAll() 
                       // 나머지는 인증 필요
                       .anyRequest().authenticated())
 
@@ -76,8 +72,6 @@ public class SecurityConfig {
               .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService()))  //사용자 정보를 OAuth2 서버에서 가져오는 데 사용됩니다.(CustomOAuth2UserService.loadUser 실행)
                 .successHandler(oAuth2AuthenticationSuccessHandler()))                    //사용자가 성공적으로 로그인한 후의 처리 로직을 작성합니다.
-
-                
               .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
       return http.build();
@@ -98,7 +92,7 @@ public class SecurityConfig {
     corsConfig.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/api/**", corsConfig);
+    source.registerCorsConfiguration("/**", corsConfig);
     return source;
   }
 
@@ -124,6 +118,4 @@ public class SecurityConfig {
       return new CustomerOAuth2UserService();
   }
 
-
-  
 }
